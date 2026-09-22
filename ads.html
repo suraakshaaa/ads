@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam End Time Calculator</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f5f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+
+    .calculator {
+      background: white;
+      width: 420px;
+      padding: 30px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 25px;
+    }
+
+    .section {
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .inputs {
+      display: flex;
+      gap: 10px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      background: #222;
+      color: white;
+      font-size: 17px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #444;
+    }
+
+    .result {
+      margin-top: 25px;
+      padding: 20px;
+      background: #f0f0f0;
+      border-radius: 10px;
+      text-align: center;
+    }
+
+    .result-label {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .end-time {
+      font-size: 36px;
+      font-weight: bold;
+      margin-top: 5px;
+    }
+
+    .error {
+      color: #c00;
+      text-align: center;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="calculator">
+
+    <h1>Exam End Time</h1>
+    <div class="subtitle">Calculate the student's exact end time</div>
+
+    <!-- START TIME -->
+    <div class="section">
+      <div class="section-title">Student Start Time</div>
+
+      <div class="inputs">
+
+        <input
+          type="number"
+          id="startHour"
+          placeholder="Hour"
+          min="1"
+          max="12"
+        >
+
+        <input
+          type="number"
+          id="startMinute"
+          placeholder="Minutes"
+          min="0"
+          max="59"
+        >
+
+        <select id="ampm">
+          <option value="AM">AM</option>
+          <option value="PM">PM</option>
+        </select>
+
+      </div>
+    </div>
+
+
+    <!-- EXAM DURATION -->
+    <div class="section">
+      <div class="section-title">Exam Duration</div>
+
+      <div class="inputs">
+
+        <input
+          type="number"
+          id="durationHour"
+          placeholder="Hours"
+          min="0"
+          value="1"
+        >
+
+        <input
+          type="number"
+          id="durationMinute"
+          placeholder="Minutes"
+          min="0"
+          max="59"
+          value="15"
+        >
+
+      </div>
+    </div>
+
+
+    <button onclick="calculateEndTime()">
+      Calculate End Time
+    </button>
+
+    <div id="error" class="error"></div>
+
+    <div class="result">
+
+      <div class="result-label">
+        STUDENT'S END TIME
+      </div>
+
+      <div class="end-time" id="result">
+        --:--
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <script>
+
+    function calculateEndTime() {
+
+      const startHour =
+        parseInt(document.getElementById("startHour").value);
+
+      const startMinute =
+        parseInt(document.getElementById("startMinute").value);
+
+      const ampm =
+        document.getElementById("ampm").value;
+
+      const durationHour =
+        parseInt(document.getElementById("durationHour").value) || 0;
+
+      const durationMinute =
+        parseInt(document.getElementById("durationMinute").value) || 0;
+
+      const error =
+        document.getElementById("error");
+
+      const result =
+        document.getElementById("result");
+
+
+      // Check inputs
+
+      if (
+        isNaN(startHour) ||
+        isNaN(startMinute)
+      ) {
+        error.textContent = "Please enter the student's start time.";
+        result.textContent = "--:--";
+        return;
+      }
+
+      if (
+        startHour < 1 ||
+        startHour > 12 ||
+        startMinute < 0 ||
+        startMinute > 59
+      ) {
+        error.textContent = "Please enter a valid time.";
+        result.textContent = "--:--";
+        return;
+      }
+
+
+      // Convert 12-hour time into total minutes
+
+      let hour24 = startHour;
+
+      if (ampm === "AM" && startHour === 12) {
+        hour24 = 0;
+      }
+
+      if (ampm === "PM" && startHour !== 12) {
+        hour24 += 12;
+      }
+
+
+      // Convert everything into minutes
+
+      let totalMinutes =
+        hour24 * 60 +
+        startMinute +
+        durationHour * 60 +
+        durationMinute;
+
+
+      // Handle going past midnight
+
+      totalMinutes = totalMinutes % (24 * 60);
+
+
+      // Convert back to hours and minutes
+
+      let endHour =
+        Math.floor(totalMinutes / 60);
+
+      let endMinute =
+        totalMinutes % 60;
+
+
+      // Convert 24-hour time back to 12-hour time
+
+      let displayHour;
+
+      let displayAMPM;
+
+      if (endHour === 0) {
+        displayHour = 12;
+        displayAMPM = "AM";
+      }
+
+      else if (endHour < 12) {
+        displayHour = endHour;
+        displayAMPM = "AM";
+      }
+
+      else if (endHour === 12) {
+        displayHour = 12;
+        displayAMPM = "PM";
+      }
+
+      else {
+        displayHour = endHour - 12;
+        displayAMPM = "PM";
+      }
+
+
+      // Add leading zero to minutes
+
+      const formattedMinute =
+        String(endMinute).padStart(2, "0");
+
+
+      // Display result
+
+      result.textContent =
+        `${displayHour}:${formattedMinute} ${displayAMPM}`;
+
+      error.textContent = "";
+
+    }
+
+  </script>
+
+</body>
+</html>
